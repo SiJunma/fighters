@@ -126,8 +126,8 @@ const typesMap = {
         agility: 5
     }, // Strong
     2: {
-        damage: 8,
-        hp: 80,
+        damage: 10,
+        hp: 100,
         strength: 10,
         agility: 15
     }, // Sneaky
