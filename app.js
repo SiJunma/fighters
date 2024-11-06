@@ -42,7 +42,7 @@ class Fighter {
 
             if (random >= def) {
                 opponent.dealDamage(_damage);
-                return `${_name} makes ${_damage} damage to ${opponentName}. ${opponentName}'s hp now is ${_currentHp}/${_maxHp}`;
+                return `${_name} makes ${_damage} damage to ${opponentName}. ${opponentName}'s hp now is ${opponent.getHealth()}/${opponent.getMaxHp()}`;
             } else {
                 return `${_name}'s attack <span class="text-danger fw-bold">missed<span>`;
             };
