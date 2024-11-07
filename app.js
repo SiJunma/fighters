@@ -9,7 +9,7 @@ class Fighter {
         let _wins = wins || 0;
         let _losses = losses || 0;
         const _id = Math.random().toString(36).slice(2);
-        let _purse = purse || 100;
+        let _purse = (purse || purse === 0) ? purse : 100;
 
         this._level = level || 1;
         this._experience = experience || 0;
@@ -72,7 +72,7 @@ class Fighter {
                 opponent.dealDamage(variableDamage);
                 return `${this.getName()} makes ${variableDamage} damage to ${opponentName}. ${opponentName}'s hp now is ${opponent.getHealth()}/${opponent.getMaxHp()}`;
             } else {
-                return `${this.getName()}'s attack <span class="text-danger fw-bold">missed</span>`;
+                return `${this.getName()}'s attack <span class="text-warning-emphasis fw-bold">missed</span>`;
             };
         };
         this.dealDamage = (value) => {
@@ -164,12 +164,20 @@ const battle = (fighter1, fighter2) => {
 
         let winner = fighter1.getHealth() ? fighter1 : fighter2;
         let looser = fighter1.getHealth() ? fighter2 : fighter1;
+        const winnerLevel = winner.getLevel();
+        const looserLevel = looser.getLevel();
 
         // Опыт для победителя
-        const baseExperience = 50;
+        const calculateExperience = () => {
+          const baseExperience = 50;
+          if (looserLevel < winnerLevel) {
+            return Math.max(1, baseExperience * (looserLevel / winnerLevel));
+          }
+          return baseExperience;
+        };
 
         // Разница характеристик проигравшего и победителя
-        const levelDifference = Math.max(looser.getLevel() - winner.getLevel(), 0);
+        const levelDifference = Math.max(looserLevel - winnerLevel, 0);
         const strengthDifference = Math.max(looser.getStrength() - winner.getStrength(), 0);
         const agilityDifference = Math.max(looser.getAgility() - winner.getAgility(), 0);
 
@@ -177,7 +185,7 @@ const battle = (fighter1, fighter2) => {
             (levelDifference * 10) + (strengthDifference * 0.5) + (agilityDifference * 0.3)
         );
 
-        const totalExperience = baseExperience + experienceBonus;
+        const totalExperience = Math.round(calculateExperience() + experienceBonus);
 
         // Базовая награда + награда за разницу характеристик
         const baseAward = 10;
@@ -192,6 +200,9 @@ const battle = (fighter1, fighter2) => {
         looser.addLoss();
         winner.addExperience(totalExperience);
         looser.addExperience(20);
+
+        modalBody.append(`<p>${looser.getName()} has <span class="text-danger fw-bold">lost</span> and guild master heals him for ${Math.floor(looser.getMaxHp() / 3)} HP points as a consolation gift.</p>`);
+        looser.heal(Math.floor(looser.getMaxHp() / 3));
 
         setToStorage();
 
