@@ -417,26 +417,45 @@ function createCard(fighter) {
     const affordableHealing = Math.min(healthToRestore, Math.floor(purse / healingCostPerPoint));
     const partialHealingCost = Math.round(affordableHealing * healingCostPerPoint);
 
+    const currentExp = fighter.getExperience();
+    const expToNextLevel = fighter.getExpToNextLevel();
+
     const card = `<div class="col-md-4 mb-4">
         <div class="card" data-id="${id}">
             <div class="card-body">
                 <h5 class="card-title">
-                    <div class="d-flex align-items-center">
-                        ${avatarSrc ? `<img src="${avatarSrc}" class="me-2 rounded-circle object-fit-cover" alt="Avatar" width="50" height="50">` : ''}
-                        ${name}
+                    <div class="d-flex">
+                        <div class="me-2 rounded-circle card-avatar">
+                            <img src="${avatarSrc}" class="rounded-circle object-fit-cover" alt="Avatar" width="70" height="70">
+                            <div class="card-avatar-level">${level}</div>
+                        </div>
+                        
+                        <div class="flex-grow-1 d-flex flex-column align-items-end">
+                            ${name}
+                            <div class="list-group-item px-0 d-flex align-items-center my-1">
+                                <img src="images/heart.png" class="me-2" alt="Health" width="20" height="20">
+
+                                <div class="fs-6">
+                                    <span ${hp < maxHp / 2 ? 'class="text-danger fw-bold"' : ''}>${hp}</span>/${maxHp}   </div> 
+                            </div>
+
+                            <div class="${!purse ? 'd-none' : ''}">
+                            ${hp < maxHp ? `<button class="btn btn-warning btn-sm healBtn" data-full-healing-cost="${fullHealingCost}" data-partial-healing="${affordableHealing}" data-partial-cost="${partialHealingCost}">Heal for ${purse >= fullHealingCost ? fullHealingCost + ' coins' : partialHealingCost + ' coins (' + affordableHealing + ' HP)'}</button>` : ''}
+                            </div>
+
+                            <div class="w-100 d-flex align-items-center">
+                                <div class="fs-6 me-2">XP:</div>
+                                <div class="progress w-100" role="progressbar" aria-label="Experience" aria-valuenow="${currentExp / expToNextLevel * 100}" aria-valuemin="0" aria-valuemax="${expToNextLevel}">
+                                  <div class="progress-bar overflow-visible text-dark" style="width: ${currentExp / expToNextLevel * 100}%">
+                                  </div>
+                                  <div class="progress-bar-label">${currentExp}/${expToNextLevel}</div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </h5>
                 <ul class="list-group list-group-flush">
-                    <li class="list-group-item px-0 d-flex align-items-center">
-                        <img src="images/heart.png" class="me-2" alt="Health" width="20" height="20">
-
-                        <div class="d-flex justify-content-between align-items-center flex-grow-1">
-                            <div>Health: <span ${hp < maxHp / 2 ? 'class="text-danger fw-bold"' : ''}>${hp}</span>/${maxHp}</div> 
-                            ${hp < maxHp ? `<button class="btn btn-warning btn-sm healBtn" data-full-healing-cost="${fullHealingCost}" data-partial-healing="${affordableHealing}" data-partial-cost="${partialHealingCost}">Heal for ${purse >= fullHealingCost ? fullHealingCost + ' coins' : partialHealingCost + ' coins (' + affordableHealing + ' HP)'}</button>` : ''}
-                        </div>
-                    </li>
-                    <li class="list-group-item px-0">Level: ${fighter.getLevel()}</li>
-                    <li class="list-group-item px-0">Experience: ${fighter.getExperience()}/${fighter.getExpToNextLevel()}</li>
+                    <li class="list-group-item px-0 d-none">Level: ${fighter.getLevel()}</li>
                     <li class="list-group-item px-0">Damage: ${damage}</li>
                     <li class="list-group-item px-0">Strength: ${strength}</li>
                     <li class="list-group-item px-0">Agility: ${agility}</li>
