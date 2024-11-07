@@ -425,7 +425,7 @@ function createCard(fighter) {
             <div class="card-body">
                 <h5 class="card-title">
                     <div class="d-flex">
-                        <div class="me-2 rounded-circle card-avatar">
+                        <div class="me-2 rounded-circle mb-auto card-avatar">
                             <img src="${avatarSrc}" class="rounded-circle object-fit-cover" alt="Avatar" width="70" height="70">
                             <div class="card-avatar-level">${level}</div>
                         </div>
@@ -439,10 +439,6 @@ function createCard(fighter) {
                                     <span ${hp < maxHp / 2 ? 'class="text-danger fw-bold"' : ''}>${hp}</span>/${maxHp}   </div> 
                             </div>
 
-                            <div class="${!purse ? 'd-none' : ''}">
-                            ${hp < maxHp ? `<button class="btn btn-warning btn-sm healBtn" data-full-healing-cost="${fullHealingCost}" data-partial-healing="${affordableHealing}" data-partial-cost="${partialHealingCost}">Heal for ${purse >= fullHealingCost ? fullHealingCost + ' coins' : partialHealingCost + ' coins (' + affordableHealing + ' HP)'}</button>` : ''}
-                            </div>
-
                             <div class="w-100 d-flex align-items-center">
                                 <div class="fs-6 me-2">XP:</div>
                                 <div class="progress w-100" role="progressbar" aria-label="Experience" aria-valuenow="${currentExp / expToNextLevel * 100}" aria-valuemin="0" aria-valuemax="${expToNextLevel}">
@@ -454,6 +450,11 @@ function createCard(fighter) {
                         </div>
                     </div>
                 </h5>
+
+                <div class="${!purse ? 'd-none' : ''}">
+                    ${hp < maxHp ? `<button class="btn btn-warning btn-sm healBtn w-100" data-full-healing-cost="${fullHealingCost}" data-partial-healing="${affordableHealing}" data-partial-cost="${partialHealingCost}">Heal for ${purse >= fullHealingCost ? fullHealingCost + ' coins' : partialHealingCost + ' coins (' + affordableHealing + ' HP)'}</button>` : ''}
+                </div>
+
                 <ul class="list-group list-group-flush">
                     <li class="list-group-item px-0 d-none">Level: ${fighter.getLevel()}</li>
                     <li class="list-group-item px-0">Damage: ${damage}</li>
