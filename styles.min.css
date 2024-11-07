@@ -24,6 +24,10 @@ body{background:#fff}
     position: relative;
 }
 
+    .progress .progress-bar {
+        background-color: #75b798;
+    }
+
     .progress .progress-bar-label {
         position: absolute;
         width: 100%;
@@ -34,7 +38,8 @@ body{background:#fff}
         display: flex;
         justify-content: center;
         align-items: center;
-        color: #486055;
+        color: #313d37;
         font-weight: 400;
     }
+ 
  /*# sourceMappingURL=styles.min.css.map */

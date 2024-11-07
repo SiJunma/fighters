@@ -26,6 +26,10 @@ body {
 .progress {
     position: relative;
 
+    .progress-bar {
+        background-color: #75b798;
+    }
+
     .progress-bar-label {
         position: absolute;
         width: 100%;
@@ -36,7 +40,7 @@ body {
         display: flex;
         justify-content: center;
         align-items: center;
-        color: #486055;
+        color: #313d37;
         font-weight: 400;
     }
 }
