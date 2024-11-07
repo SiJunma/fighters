@@ -46,19 +46,33 @@ class Fighter {
             }
         };
         this.attack = (opponent) => {
-            const def = opponent.getAgility() + opponent.getStrength();
-            const random = Math.round(Math.random() * 100);
             const opponentName = opponent.getName();
-            const variableDamage = Math.round(_damage * (0.8 + Math.random() * 0.4));
 
-            if (Math.random() < 0.15) {
-                opponent.dealDamage(_damage * 2);
-                return `${_name} makes a <span class="fw-bold">critical hit</span> and deals ${_damage * 2} damage to ${opponentName}. ${opponentName}'s hp now is ${opponent.getHealth()}/${opponent.getMaxHp()}`;
-            } else if (random >= def) {
-                opponent.dealDamage(variableDamage);
-                return `${_name} makes ${variableDamage} damage to ${opponentName}. ${opponentName}'s hp now is ${opponent.getHealth()}/${opponent.getMaxHp()}`;
+            const attackerAgility = this.getAgility();
+            const defenderAgility = opponent.getAgility();
+
+            // Базовая вероятность попадания
+            let hitChance = 0.5; // 50%
+
+            // Корректировка на основе разницы ловкости
+            if (attackerAgility > defenderAgility) {
+                hitChance += (attackerAgility - defenderAgility) * 0.01; // +1% за каждое преимущество в ловкости
             } else {
-                return `${_name}'s attack <span class="text-danger fw-bold">missed<span>`;
+                hitChance -= (defenderAgility - attackerAgility) * 0.01; // -1% за каждое преимущество противника
+            };
+
+            // Учитываем критический шанс
+            const isCriticalHit = Math.random() < 0.15;
+
+            if (isCriticalHit) {
+                opponent.dealDamage(this.getDamage() * 2);
+                return `${this.getName()} makes a <span class="fw-bold">critical hit</span> and deals ${this.getDamage() * 2} damage to ${opponentName}. ${opponentName}'s hp now is ${opponent.getHealth()}/${opponent.getMaxHp()}`;
+            } else if (Math.random() < hitChance) {
+                const variableDamage = Math.round(this.getDamage() * (0.8 + Math.random() * 0.4));
+                opponent.dealDamage(variableDamage);
+                return `${this.getName()} makes ${variableDamage} damage to ${opponentName}. ${opponentName}'s hp now is ${opponent.getHealth()}/${opponent.getMaxHp()}`;
+            } else {
+                return `${this.getName()}'s attack <span class="text-danger fw-bold">missed</span>`;
             };
         };
         this.dealDamage = (value) => {
@@ -190,6 +204,7 @@ const battle = (fighter1, fighter2) => {
             $('.card[data-id="' + looserId + '"]').parent().replaceWith(createCard(looser));
             $('.card[data-id="' + winnerId + '"]').parent().replaceWith(createCard(winner));
             msgModal.off('hidden.bs.modal'); // Удаляем обработчик, чтобы он срабатывал только один раз
+            showMsgBtn.removeClass('d-none');
         });
 
         return true;
@@ -203,6 +218,7 @@ const getHealingCostPerPoint = function(level = 1) {
     return 0.01 + level * 0.1;
 };
 
+const showMsgBtn = $('#showLastEvent');
 const firghersList = $('#firghersList');
 const createFighterBtn = $('#createFighter');
 const fighterForm = $('#fighterForm');
@@ -235,6 +251,10 @@ const fighters = getFromStorage() || [];
 if (fighters.length) {
     fighters.forEach(fighter => firghersList.append(createCard(fighter)));
 };
+
+showMsgBtn.on('click', () => {
+    msgModal.modal('show');
+});
 
 submitFighter.on('click', () => {
     const name = $('#fighterName').val();
