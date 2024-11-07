@@ -199,14 +199,14 @@ const battle = (fighter1, fighter2) => {
 
         modalBody.append(`<p>${winner.getName()} has <span class="text-success fw-bold">won</span> and received ${award} coins and ${totalExperience} experience!</p>`);
 
+        modalBody.append(`<p>${looser.getName()} has <span class="text-danger fw-bold">lost</span> and guild master heals him for ${Math.floor(looser.getMaxHp() / 3)} HP points as a consolation gift.</p>`);
+        looser.heal(Math.floor(looser.getMaxHp() / 3));
+
         winner.addWin();
         winner.addToPurse(award);
         looser.addLoss();
         winner.addExperience(totalExperience);
         looser.addExperience(20);
-
-        modalBody.append(`<p>${looser.getName()} has <span class="text-danger fw-bold">lost</span> and guild master heals him for ${Math.floor(looser.getMaxHp() / 3)} HP points as a consolation gift.</p>`);
-        looser.heal(Math.floor(looser.getMaxHp() / 3));
 
         setToStorage();
 
