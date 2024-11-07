@@ -1,5 +1,5 @@
 class Fighter {
-    constructor({ name, damage, hp, strength, agility, wins, losses, purse, maxHp, level, experience, expToNextLevel }) {
+    constructor({ name, damage, hp, strength, agility, wins, losses, purse, maxHp, level, experience, expToNextLevel, avatar }) {
         let _name = name;
         let _damage = damage;
         let _maxHp = maxHp || hp;
@@ -10,6 +10,7 @@ class Fighter {
         let _losses = losses || 0;
         const _id = Math.random().toString(36).slice(2);
         let _purse = (purse || purse === 0) ? purse : 100;
+        let _avatar = avatar || 'images/' + avsMap[Math.floor(Math.random() * avsMap.length)];
 
         this._level = level || 1;
         this._experience = experience || 0;
@@ -36,6 +37,9 @@ class Fighter {
 
         this.setPurse = (value) => _purse = value;
         this.setMaxHp = (value) => _maxHp = value;
+
+        this.getAvatar = () => _avatar;
+        this.setAvatar = (value) => _avatar = value;
 
         this.logCombatHistory = () => console.log(`Name: ${_name}, Wins: ${_wins}, Losses: ${_losses}`);
         this.heal = (value) => {
@@ -237,6 +241,7 @@ const cancelSubmitting = $('#cancelSubmitting');
 const submitFighter = $('#submitFighter');
 const sentToBattle = $('#sentToBattle');
 const msgModal = $('#msgModal');
+const avsMap = Array.from({length: 16}, (_, i) => `av-${i + 1}.png`);
 const typesMap = {
     1: {
         damage: 12,
@@ -270,13 +275,15 @@ showMsgBtn.on('click', () => {
 submitFighter.on('click', () => {
     const name = $('#fighterName').val();
     const type = $('#fighterType').val();
+    const avatar = $('#selectedAvatar').attr('src');
 
     const newFighter = new Fighter({
         name: name,
         damage: typesMap[type].damage,
         hp: typesMap[type].hp,
         strength: typesMap[type].strength,
-        agility: typesMap[type].agility
+        agility: typesMap[type].agility,
+        avatar: avatar
     });
     fighters.push(newFighter);
 
@@ -343,6 +350,12 @@ $(document).on('click', '.healBtn', function () {
     setToStorage();
 });
 
+$(document).on('click', '.js-selectAv', function () {
+    const src = $(this).data('src');
+    pickAvatar(src);
+    $('#avatarsLibraryModal').modal('hide');
+});
+
 sentToBattle.on('click', () => {
     const selected = $('.selectToBattle:checked');
     const id1 = selected[0].value;
@@ -364,12 +377,22 @@ sentToBattle.on('click', () => {
 createFighterBtn.on('click', () => {
     createFighterBtn.addClass('d-none');
     fighterForm.removeClass('d-none');
+
+    // Select a random img from avsMap and pickAvatar(src)
+    const randomAvatarSrc = avsMap[Math.floor(Math.random() * avsMap.length)];
+    pickAvatar(randomAvatarSrc);
 });
 
 cancelSubmitting.on('click', () => {
     createFighterBtn.removeClass('d-none');
     fighterForm.addClass('d-none');
 });
+
+function pickAvatar(src) {
+    const container = $('#avatarContainer');
+    $('#selectedAvatar').remove();
+    container.prepend(`<img src="images/${src}" title="avatar" class="d-block rounded-circle object-fit-cover" id="selectedAvatar" width="120" height="120">`);
+};
 
 function createCard(fighter) {
     const name = fighter.getName();
@@ -383,6 +406,7 @@ function createCard(fighter) {
     const losses = fighter.getLosses();
     const level = fighter.getLevel();
     const purse = fighter.getPurse();
+    const avatarSrc = fighter.getAvatar();
 
     const healingCostPerPoint = getHealingCostPerPoint(level);
 
@@ -396,7 +420,12 @@ function createCard(fighter) {
     const card = `<div class="col-md-4 mb-4">
         <div class="card" data-id="${id}">
             <div class="card-body">
-                <h5 class="card-title">${name}</h5>
+                <h5 class="card-title">
+                    <div class="d-flex align-items-center">
+                        ${avatarSrc ? `<img src="${avatarSrc}" class="me-2 rounded-circle object-fit-cover" alt="Avatar" width="50" height="50">` : ''}
+                        ${name}
+                    </div>
+                </h5>
                 <ul class="list-group list-group-flush">
                     <li class="list-group-item px-0 d-flex align-items-center">
                         <img src="images/heart.png" class="me-2" alt="Health" width="20" height="20">
@@ -459,7 +488,8 @@ function setToStorage() {
             maxHp: fighter.getMaxHp(),
             level: fighter.getLevel(),
             experience: fighter.getExperience(),
-            expToNextLevel: fighter.getExpToNextLevel()
+            expToNextLevel: fighter.getExpToNextLevel(),
+            avatar: fighter.getAvatar()
         });
     });
 
@@ -485,7 +515,8 @@ function getFromStorage() {
                 purse: fighter.purse,
                 maxHp: fighter.maxHp,
                 level: fighter.level,
-                experience: fighter.experience
+                experience: fighter.experience,
+                avatar: fighter.avatar
             });
 
             newFighters.push(newFighter);
@@ -496,3 +527,20 @@ function getFromStorage() {
         return [];
     };
 };
+
+function generateAvsGrid() {
+    const container = $('#avsGridBox');
+    container.empty();
+
+    avsMap.forEach((image, i) => {
+        container.append(`<div class="d-flex flex-column gap-1 avCard">
+            <img src="images/${image}" title="avatar" class="d-block rounded-circle object-fit-cover" width="120" height="120">
+            <button type="button" class="btn btn-primary btn-sm js-selectAv" data-src="${image}">Select</button>
+        </div>`);
+    });
+};
+
+$( document ).ready(function() {
+    generateAvsGrid();
+});
+
