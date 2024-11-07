@@ -1,5 +1,5 @@
 class Fighter {
-    constructor({ name, damage, hp, strength, agility, wins, losses, purse, maxHp }) {
+    constructor({ name, damage, hp, strength, agility, wins, losses, purse, maxHp, level, experience, expToNextLevel }) {
         let _name = name;
         let _damage = damage;
         let _maxHp = maxHp || hp;
@@ -11,11 +11,21 @@ class Fighter {
         const _id = Math.random().toString(36).slice(2);
         let _purse = purse || 100;
 
+        this._level = level || 1;
+        this._experience = experience || 0;
+        this._expToNextLevel = expToNextLevel || 100;
+
+        this.getLevel = () => this._level;
+        this.getExperience = () => this._experience;
+        this.getExpToNextLevel = () => this._expToNextLevel;
+
         this.getName = () => _name.trim();
         this.getDamage = () => _damage;
+        this.setDamage = (value) => _damage = value;
         this.getStrength = () => _strength;
-        this.getStrength = () => _strength;
+        this.setStrength = (value) => _strength = value;
         this.getAgility = () => _agility;
+        this.setAgility = (value) => _agility = value;
         this.getHealth = () => _currentHp;
         this.getMaxHp = () => _maxHp;
         this.getId = () => _id;
@@ -37,12 +47,16 @@ class Fighter {
         };
         this.attack = (opponent) => {
             const def = opponent.getAgility() + opponent.getStrength();
-            const random = Math.round(Math.random() * '100');
+            const random = Math.round(Math.random() * 100);
             const opponentName = opponent.getName();
+            const variableDamage = Math.round(_damage * (0.8 + Math.random() * 0.4));
 
-            if (random >= def) {
-                opponent.dealDamage(_damage);
-                return `${_name} makes ${_damage} damage to ${opponentName}. ${opponentName}'s hp now is ${opponent.getHealth()}/${opponent.getMaxHp()}`;
+            if (Math.random() < 0.15) {
+                opponent.dealDamage(_damage * 2);
+                return `${_name} makes a <span class="fw-bold">critical hit</span> and deals ${_damage * 2} damage to ${opponentName}. ${opponentName}'s hp now is ${opponent.getHealth()}/${opponent.getMaxHp()}`;
+            } else if (random >= def) {
+                opponent.dealDamage(variableDamage);
+                return `${_name} makes ${variableDamage} damage to ${opponentName}. ${opponentName}'s hp now is ${opponent.getHealth()}/${opponent.getMaxHp()}`;
             } else {
                 return `${_name}'s attack <span class="text-danger fw-bold">missed<span>`;
             };
@@ -50,15 +64,38 @@ class Fighter {
         this.dealDamage = (value) => {
             if (value > 0) {
                 let hp = this.getHealth();
-                hp - value >= 0 ? hp -= value : hp = 0;
+                hp -= value;
+                if (hp < 0) { hp = 0; } // Устанавливаем здоровье в 0, если оно опускается ниже
                 _currentHp = hp;
-            }
+            };
         };
         this.addWin = () => {
             _wins += 1;
         };
         this.addLoss = () => {
             _losses += 1;
+        };
+
+        this.addExperience = function(exp) {
+            this._experience += exp;
+            if (this._experience >= this._expToNextLevel) {
+                this.levelUp();
+            };
+        };
+
+        this.levelUp = function() {
+            this._level += 1;
+            this._experience -= this.getExpToNextLevel();
+            this._expToNextLevel = Math.round(this._expToNextLevel * 1.5); // Увеличение опыта для следующего уровня
+            
+            // Повышение характеристик с каждым уровнем
+            this._damage = this.setDamage(Math.floor(this.getDamage() * 1.1) + 1);
+            this._maxHp = this.setMaxHp(Math.floor(this.getMaxHp() * 1.1) + 1);
+            this._strength = this.setStrength(Math.floor(this.getStrength() * 1.1) + 1);
+            this._agility = this.setAgility(Math.floor(this.getAgility() * 1.1) + 1);
+            this._currentHp = this.heal(this.getMaxHp() - this.getHealth()); // Восстановление HP при повышении уровня
+
+            msgModal.find('.modal-body').append(`<p>${this.getName()} has reached <span class="fw-bold">${this._level}</span> and fully regenerates health!</p>`);
         };
     }
 };
@@ -70,45 +107,100 @@ const battle = (fighter1, fighter2) => {
         msgModal.modal('show');
 
         let round = 1;
+        let battleEnded = false;
+        function battleEnd(roundHtml) {
+            battleEnded = true;
+            modalBody.append(roundHtml);
+        };
 
-        while (fighter1.getHealth() && fighter2.getHealth()) {
-            const random = Math.round(Math.random() * '1');
+        while (fighter1.getHealth() && fighter2.getHealth() && !battleEnded) {
+            const random = Math.round(Math.random());
             const roundHtml = $('<div class="round-container"></div>');
 
             roundHtml.append(`<h6 class="card-subtitle mb-2 text-muted">Round ${round++}</h6>`);
 
             if (random) {
                 roundHtml.append(`<p class="mb-0">${fighter1.attack(fighter2)}</p>`);
+                if (fighter2.getHealth() <= 0) {
+                    battleEnd(roundHtml);
+                    break;
+                };
+
                 roundHtml.append(`<p>${fighter2.attack(fighter1)}</p>`);
+                if (fighter1.getHealth() <= 0) {
+                    battleEnd(roundHtml);
+                    break;
+                };
             } else {                
                 roundHtml.append(`<p class="mb-0">${fighter2.attack(fighter1)}</p>`);
-                roundHtml.append(`<p>${fighter1.attack(fighter2)}</p>`);
-            };
+                if (fighter1.getHealth() <= 0) {
+                    battleEnd(roundHtml);
+                    break;
+                };
 
+                roundHtml.append(`<p>${fighter1.attack(fighter2)}</p>`);
+                if (fighter2.getHealth() <= 0) {
+                    battleEnd(roundHtml);
+                    break;
+                };
+            };
+            
             modalBody.append(roundHtml);
         };
+
         let winner = fighter1.getHealth() ? fighter1 : fighter2;
         let looser = fighter1.getHealth() ? fighter2 : fighter1;
 
-        const coefficient = (looser.getWins() * 0.2 || 0.01) / (looser.getLosses() || 1);
-        const award = Math.round(10 + 10 * coefficient);
+        // Опыт для победителя
+        const baseExperience = 50;
 
-        modalBody.append(`<p>${winner.getName()} has <span class="text-success fw-bold">won</span> and received ${award} coins!</p>`);
+        // Разница характеристик проигравшего и победителя
+        const levelDifference = Math.max(looser.getLevel() - winner.getLevel(), 0);
+        const strengthDifference = Math.max(looser.getStrength() - winner.getStrength(), 0);
+        const agilityDifference = Math.max(looser.getAgility() - winner.getAgility(), 0);
+
+        const experienceBonus = Math.round(
+            (levelDifference * 10) + (strengthDifference * 0.5) + (agilityDifference * 0.3)
+        );
+
+        const totalExperience = baseExperience + experienceBonus;
+
+        // Базовая награда + награда за разницу характеристик
+        const baseAward = 10;
+        const award = Math.round(
+            baseAward + (levelDifference * 10) + (strengthDifference * 0.5) + (agilityDifference * 0.3)
+        );
+
+        modalBody.append(`<p>${winner.getName()} has <span class="text-success fw-bold">won</span> and received ${award} coins and ${totalExperience} experience!</p>`);
 
         winner.addWin();
         winner.addToPurse(award);
         looser.addLoss();
-
-        //find card of the looser and the winner and rerender them
-        $('.card[data-id="' + looser.getId() + '"]').parent().replaceWith(createCard(looser));
-        $('.card[data-id="' + winner.getId() + '"]').parent().replaceWith(createCard(winner));
+        winner.addExperience(totalExperience);
+        looser.addExperience(20);
 
         setToStorage();
+
+        // Флаг для отслеживания бойцов, которые нужно обновить после закрытия модального окна
+        const winnerId = winner.getId();
+        const looserId = looser.getId();
+
+        // Обработчик обновления карточек при закрытии модального окна
+        msgModal.on('hidden.bs.modal', function () {
+            $('.card[data-id="' + looserId + '"]').parent().replaceWith(createCard(looser));
+            $('.card[data-id="' + winnerId + '"]').parent().replaceWith(createCard(winner));
+            msgModal.off('hidden.bs.modal'); // Удаляем обработчик, чтобы он срабатывал только один раз
+        });
+
         return true;
     } else {
         console.log(`${fighter1.getHealth() ? fighter2.getName() : fighter1.getName()} is dead and can't fight.`);
         return false;
     };
+};
+
+const getHealingCostPerPoint = function(level = 1) {
+    return 0.01 + level * 0.1;
 };
 
 const firghersList = $('#firghersList');
@@ -133,7 +225,7 @@ const typesMap = {
     }, // Sneaky
     3: {
         damage: 10,
-        hp: 120,
+        hp: 125,
         strength: 10,
         agility: 5
     }, // Tank
@@ -195,17 +287,26 @@ $(document).on('click', '.healBtn', function () {
     const fighter = getFighterById(id);
     const maxHp = fighter.getMaxHp();
     const currentHp = fighter.getHealth();
-    const Purse = fighter.getPurse();
+    const purse = fighter.getPurse();
     const name = fighter.getName();
+    const healingCostPerPoint = getHealingCostPerPoint(fighter.getLevel());
 
-    if (Purse < 10) {
-        msgModal.find('.modal-body').html(`<p>${name} doesn't have enough coins to heal!</p><p><i>We will add a a possibility to donate coins for real money in the future >:)</i></p>`);
+    const healthToRestore = maxHp - currentHp;
+    const fullHealingCost = Math.round(healthToRestore * healingCostPerPoint);
+    const affordableHealing = Math.min(healthToRestore, Math.floor(purse / healingCostPerPoint));
+    const partialHealingCost = Math.round(affordableHealing * healingCostPerPoint);
+
+    if (purse >= fullHealingCost) {
+        fighter.heal(healthToRestore);
+        fighter.setPurse(purse - fullHealingCost);
+    } else if (affordableHealing > 0) {
+        fighter.heal(affordableHealing);
+        fighter.setPurse(purse - partialHealingCost);
+    } else {
+        msgModal.find('.modal-body').html(`<p>${name} doesn't have enough coins to heal!</p>`);
         msgModal.modal('show');
         return;
     };
-
-    fighter.heal(maxHp - currentHp);
-    fighter.setPurse(Purse - 10);
 
     $('.card[data-id="' + id + '"]').parent().replaceWith(createCard(fighter));
     setToStorage();
@@ -249,14 +350,34 @@ function createCard(fighter) {
     const id = fighter.getId();
     const wins = fighter.getWins();
     const losses = fighter.getLosses();
+    const level = fighter.getLevel();
+    const purse = fighter.getPurse();
+
+    const healingCostPerPoint = getHealingCostPerPoint(level);
+
+    const healthToRestore = maxHp - hp;
+    const fullHealingCost = Math.round(healthToRestore * healingCostPerPoint);
+
+    // Если денег не хватает на полное лечение, рассчитываем доступное восстановление
+    const affordableHealing = Math.min(healthToRestore, Math.floor(purse / healingCostPerPoint));
+    const partialHealingCost = Math.round(affordableHealing * healingCostPerPoint);
 
     const card = `<div class="col-md-4 mb-4">
         <div class="card" data-id="${id}">
             <div class="card-body">
                 <h5 class="card-title">${name}</h5>
                 <ul class="list-group list-group-flush">
+                    <li class="list-group-item px-0 d-flex align-items-center">
+                        <img src="images/heart.png" class="me-2" alt="Health" width="20" height="20">
+
+                        <div class="d-flex justify-content-between align-items-center flex-grow-1">
+                            <div>Health: <span ${hp < maxHp / 2 ? 'class="text-danger fw-bold"' : ''}>${hp}</span>/${maxHp}</div> 
+                            ${hp < maxHp ? `<button class="btn btn-warning btn-sm healBtn" data-full-healing-cost="${fullHealingCost}" data-partial-healing="${affordableHealing}" data-partial-cost="${partialHealingCost}">Heal for ${purse >= fullHealingCost ? fullHealingCost + ' coins' : partialHealingCost + ' coins (' + affordableHealing + ' HP)'}</button>` : ''}
+                        </div>
+                    </li>
+                    <li class="list-group-item px-0">Level: ${fighter.getLevel()}</li>
+                    <li class="list-group-item px-0">Experience: ${fighter.getExperience()}/${fighter.getExpToNextLevel()}</li>
                     <li class="list-group-item px-0">Damage: ${damage}</li>
-                    <li class="list-group-item px-0"><div class="d-flex justify-content-between align-items-center"><div>Health: <span ${hp < maxHp / 2 ? 'class="text-danger fw-bold"' : ''}>${hp}</span>/${maxHp}</div> ${hp < maxHp ? '<button class="btn btn-warning btn-sm healBtn">Heal for 10 coins</button>' : ''}</div></li>
                     <li class="list-group-item px-0">Strength: ${strength}</li>
                     <li class="list-group-item px-0">Agility: ${agility}</li>
                 </ul>
@@ -265,7 +386,7 @@ function createCard(fighter) {
                 <ul class="list-group list-group-flush">
                     <li class="list-group-item">Wins: ${wins}</li>
                     <li class="list-group-item">Losses: ${losses}</li>
-                    <li class="list-group-item">Purse: ${fighter.getPurse()} coins</li>
+                    <li class="list-group-item">Purse: ${purse} coins</li>
                 </ul>
             </div>
             <div class="card-footer">
@@ -304,7 +425,10 @@ function setToStorage() {
             wins: fighter.getWins(),
             losses: fighter.getLosses(),
             purse: fighter.getPurse(),
-            maxHp: fighter.getMaxHp()
+            maxHp: fighter.getMaxHp(),
+            level: fighter.getLevel(),
+            experience: fighter.getExperience(),
+            expToNextLevel: fighter.getExpToNextLevel()
         });
     });
 
@@ -328,7 +452,9 @@ function getFromStorage() {
                 wins: fighter.wins,
                 losses: fighter.losses,
                 purse: fighter.purse,
-                maxHp: fighter.maxHp
+                maxHp: fighter.maxHp,
+                level: fighter.level,
+                experience: fighter.experience
             });
 
             newFighters.push(newFighter);
