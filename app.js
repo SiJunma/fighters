@@ -536,6 +536,7 @@ function getFromStorage() {
                 maxHp: fighter.maxHp,
                 level: fighter.level,
                 experience: fighter.experience,
+                expToNextLevel: fighter.expToNextLevel,
                 avatar: fighter.avatar
             });
 
