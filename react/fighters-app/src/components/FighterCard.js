@@ -13,7 +13,7 @@ function FighterCard({ fighter, onSelect, isSelected, onDelete, isDisabledSelect
   const losses = fighter.getLosses();
   const level = fighter.getLevel();
   const purse = fighter.getPurse();
-  const avatarSrc = fighter.getAvatar();
+  const avatarSrc = fighter.getAvatar().replace('images/', '');
   const currentExp = fighter.getExperience();
   const expToNextLevel = fighter.getExpToNextLevel();
 
@@ -45,7 +45,7 @@ function FighterCard({ fighter, onSelect, isSelected, onDelete, isDisabledSelect
                 <h5 className="card-title">
                     <div className="d-flex">
                         <div className="me-2 rounded-circle mb-auto card-avatar">
-                            <Image src={avatarSrc} className="rounded-circle object-fit-cover" alt="Avatar" width="70" height="70" />
+                            <Image src={'images/' + avatarSrc} className="rounded-circle object-fit-cover" alt="Avatar" width="70" height="70" />
                             <div className="card-avatar-level">{level}</div>
                         </div>
                         
