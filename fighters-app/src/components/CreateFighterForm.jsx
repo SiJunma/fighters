@@ -26,7 +26,7 @@ function CreateFighterForm({ onCreate, onCancel }) {
   return (
     <div id="fighterForm" className="mb-3">
         <div className="mb-3 d-flex align-items-center gap-3" id="avatarContainer">
-            {avatar && <Image src={`images/${avatar}`} alt="avatar" width="120" height="120" className="d-block rounded-circle object-fit-cover" id="selectedAvatar" />}
+            {avatar && <Image src={`./images/${avatar}`} alt="avatar" width="120" height="120" className="d-block rounded-circle object-fit-cover" id="selectedAvatar" />}
 
             <Button id="openAvsModal" type="button" variant="secondary" onClick={() => setIsAvatarModalOpen(true)}>{avatar ? t('changeAvBtn') : t('chooseAvBtn')}</Button>
         </div>

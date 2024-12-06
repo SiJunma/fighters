@@ -14,7 +14,7 @@ i18n
       escapeValue: false, // React сам экранирует значения
     },
     backend: {
-      loadPath: '/locales/{{lng}}/translation.json',
+      loadPath: './locales/{{lng}}/translation.json',
     },
     pluralSeparator: '_',
     compatibilityJSON: 'v4',

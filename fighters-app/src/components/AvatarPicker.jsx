@@ -7,7 +7,7 @@ function AvatarPicker({ onSelect }) {
     <div className="d-flex gap-4 flex-wrap justify-content-center">
       {avatars.map((avatar) => (
         <div className="d-flex flex-column gap-1 avCard" key={avatar}><img
-          src={`images/${avatar}`}
+          src={`./images/${avatar}`}
           alt="avatar"
           className="d-block rounded-circle object-fit-cover"
           width="120"

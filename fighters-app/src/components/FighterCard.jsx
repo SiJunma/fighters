@@ -48,14 +48,14 @@ function FighterCard({ fighter, onSelect, isSelected, onDelete, isDisabledSelect
                 <h5 className="card-title">
                     <div className="d-flex">
                         <div className="me-2 rounded-circle mb-auto card-avatar">
-                            <Image src={'images/' + avatarSrc} className="rounded-circle object-fit-cover" alt="Avatar" width="70" height="70" />
+                            <Image src={'./images/' + avatarSrc} className="rounded-circle object-fit-cover" alt="Avatar" width="70" height="70" />
                             <div className="card-avatar-level">{level}</div>
                         </div>
                         
                         <div className="flex-grow-1 d-flex flex-column align-items-end">
                             {name}
                             <div className="list-group-item px-0 d-flex align-items-center my-1">
-                              <Image src="images/heart.png" className="me-2" alt="Damage" width="20" height="20" />
+                              <Image src="./images/heart.png" className="me-2" alt="Damage" width="20" height="20" />
 
                                 <div className="fs-6">
                                   <span className={hp < maxHp / 2 ? "text-danger fw-bold" : ""}>{hp}</span>/{maxHp}   
